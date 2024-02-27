@@ -3,7 +3,7 @@
  * Plugin Name:       Test
  * Plugin URI:        https://aveo.dk/
  * Description:       Tester funktionalitet for Aveo
- * Version:           1.0.1
+ * Version:           1.0.2
  * Author:            Aveo
  * Update URI:        https://aveo.dk/
  * Text Domain:       test
@@ -16,6 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 add_filter('site_transient_update_plugins', 'aveo_test_check_for_plugin_update');
 
 function aveo_test_check_for_plugin_update($checked_data) {
+    error_log('Checking:');
     if (empty($checked_data->checked)) {
         error_log('BARSRE: No plugin data');
         return $checked_data;
@@ -41,10 +42,13 @@ function aveo_test_check_for_plugin_update($checked_data) {
         set_transient($transient_name, $response, 1 * HOUR_IN_SECONDS);
     }
 
-    error_log('BARSRE: Response: ' . print_r($response, true));
+    // error_log('BARSRE: Response: ' . print_r($response, true));
 
     $latest_version = $response['tag_name'];
     $plugin_slug = plugin_basename(__FILE__);
+
+    // Log the latest version
+    error_log('BARSRE: Latest version: ' . $latest_version);
 
     if (version_compare($checked_data->checked[$plugin_slug], $latest_version, '<')) {
         $checked_data->response[$plugin_slug] = [
@@ -53,6 +57,8 @@ function aveo_test_check_for_plugin_update($checked_data) {
             'package' => $response['zipball_url'],
             'new_version' => $latest_version
         ];
+    } else {
+        error_log('BARSRE: No update available');
     }
 
     return $checked_data;

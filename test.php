@@ -3,7 +3,7 @@
  * Plugin Name:       Test
  * Plugin URI:        https://aveo.dk/
  * Description:       Tester funktionalitet for Aveo
- * Version:           1.0.2
+ * Version:           1.0.0
  * Author:            Aveo
  * Update URI:        https://aveo.dk/
  * Text Domain:       test
@@ -13,12 +13,11 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit; 
 }
 
-add_filter('site_transient_update_plugins', 'aveo_test_check_for_plugin_update');
+add_filter('site_transient_update_plugins', 'aveo_test_check_for_plugin_update', 100);
 
 function aveo_test_check_for_plugin_update($checked_data) {
-    error_log('Checking:');
+    $barsre_blocker = true;
     if (empty($checked_data->checked)) {
-        error_log('BARSRE: No plugin data');
         return $checked_data;
     }
 
@@ -26,14 +25,12 @@ function aveo_test_check_for_plugin_update($checked_data) {
     $cached_response = get_transient($transient_name);
 
     if ($cached_response !== false) {
-        error_log('BARSRE: Using cached response');
         // We have a cached response, use this instead of making a new API call
         $response = $cached_response;
     } else {
         // No cached response, make an API call
         $api_url = 'https://api.github.com/repos/Aveo-Web-Marketing/Test/releases/latest';
         $response = wp_remote_get($api_url);
-        error_log('BARSRE: Making API call');
         if (is_wp_error($response)) {
             return $checked_data;
         }
@@ -42,15 +39,17 @@ function aveo_test_check_for_plugin_update($checked_data) {
         set_transient($transient_name, $response, 1 * HOUR_IN_SECONDS);
     }
 
-    // error_log('BARSRE: Response: ' . print_r($response, true));
-
     $latest_version = $response['tag_name'];
     $plugin_slug = plugin_basename(__FILE__);
 
     // Log the latest version
-    error_log('BARSRE: Latest version: ' . $latest_version);
-
-    if (version_compare($checked_data->checked[$plugin_slug], $latest_version, '<')) {
+    error_log(print_r($checked_data->checked, true));
+    $clean_checked_version = ltrim($checked_data->checked[$plugin_slug], 'v');
+    $clean_latest_version = ltrim($latest_version, 'v');
+    error_log('BARSRE: Latest version: ' . $clean_latest_version);
+    error_log('BARSRE: Looking for: ' . $clean_checked_version);
+    error_log('BARSRE: Compare: ' . (version_compare($clean_checked_version, $clean_latest_version, '<') ? 'true' : 'false'));
+    if (version_compare($clean_checked_version, $clean_latest_version, '<')) {
         $checked_data->response[$plugin_slug] = [
             'url' => 'https://github.com/Aveo-Web-Marketing/Test',
             'slug' => $plugin_slug,
@@ -60,6 +59,5 @@ function aveo_test_check_for_plugin_update($checked_data) {
     } else {
         error_log('BARSRE: No update available');
     }
-
     return $checked_data;
 }

@@ -3,7 +3,7 @@
  * Plugin Name:       Test
  * Plugin URI:        https://aveo.dk/
  * Description:       Tester funktionalitet for Aveo
- * Version:           1.0.5
+ * Version:           1.0.6
  * Author:            Aveo
  * Update URI:        https://aveo.dk/
  * Text Domain:       test

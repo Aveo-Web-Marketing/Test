@@ -43,12 +43,8 @@ function aveo_test_check_for_plugin_update($checked_data) {
     $plugin_slug = plugin_basename(__FILE__);
 
     // Log the latest version
-    error_log(print_r($checked_data->checked, true));
     $clean_checked_version = ltrim($checked_data->checked[$plugin_slug], 'v');
     $clean_latest_version = ltrim($latest_version, 'v');
-    error_log('BARSRE: Latest version: ' . $clean_latest_version);
-    error_log('BARSRE: Looking for: ' . $clean_checked_version);
-    error_log('BARSRE: Compare: ' . (version_compare($clean_checked_version, $clean_latest_version, '<') ? 'true' : 'false'));
     if (version_compare($clean_checked_version, $clean_latest_version, '<')) {
         $checked_data->response[$plugin_slug] = [
             'url' => 'https://github.com/Aveo-Web-Marketing/Test',

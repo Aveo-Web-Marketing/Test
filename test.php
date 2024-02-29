@@ -3,9 +3,9 @@
  * Plugin Name:       Test
  * Plugin URI:        https://aveo.dk/
  * Description:       Tester funktionalitet for Aveo
- * Version:           1.0.6
+ * Version:           1.0.7
  * Author:            Aveo
- * Update URI:        https://aveo.dk/
+ * Update URI:        https://github.com/Aveo-Web-Marketing/Test
  * Text Domain:       test
  */
 
@@ -22,11 +22,11 @@ function aveo_test_check_for_plugin_update($checked_data) {
     $transient_name = 'aveo_test_update_check';
     $cached_response = get_transient($transient_name);
     if ($cached_response !== false) { return $checked_data; } // Close if transient is set
-    set_transient($transient_name, 'not_empty', 60);
+    set_transient($transient_name, 'not_empty', 5);
 
     // Get the latest version
     $api_url = 'https://api.github.com/repos/Aveo-Web-Marketing/Test/releases/latest';
-    $access_token = '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';
+    $access_token = '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';
     $args = array(
         'headers' => array(
             'Authorization' => 'token ' . $access_token,
@@ -45,12 +45,12 @@ function aveo_test_check_for_plugin_update($checked_data) {
 
     // If a newer version is available, include it in the update array
     if ($latest_version && version_compare($current_version, $latest_version, '<')) {
+        error_log('BARSRE: New version available');
         $object = new stdClass();
         $object->slug = $plugin_slug;
         $object->new_version = $latest_version;
         $object->url = 'https://github.com/Aveo-Web-Marketing/Test';
         $object->package = $response['zipball_url'];
-
         $checked_data->response[$plugin_slug] = $object;
     } else {
         error_log('BARSRE: No update available');

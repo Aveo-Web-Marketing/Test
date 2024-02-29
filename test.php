@@ -3,7 +3,7 @@
  * Plugin Name:       Test
  * Plugin URI:        https://aveo.dk/
  * Description:       Tester funktionalitet for Aveo
- * Version:           1.0.3
+ * Version:           1.0.0
  * Author:            Aveo
  * Update URI:        https://aveo.dk/
  * Text Domain:       test
@@ -16,7 +16,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 add_filter('site_transient_update_plugins', 'aveo_test_check_for_plugin_update', 100);
 
 function aveo_test_check_for_plugin_update($checked_data) {
-    error_log('BARSRE: Checking for updates');
     $barsre_blocker = true;
     if (empty($checked_data->checked)) {
         return $checked_data;
@@ -44,9 +43,9 @@ function aveo_test_check_for_plugin_update($checked_data) {
     $plugin_slug = plugin_basename(__FILE__);
 
     // Log the latest version
-    $current_version = ltrim($checked_data->checked[$plugin_slug], 'v');
-    $latest_version = ltrim($latest_version, 'v');
-    if (version_compare($current_version, $latest_version, '<')) {
+    $clean_checked_version = ltrim($checked_data->checked[$plugin_slug], 'v');
+    $clean_latest_version = ltrim($latest_version, 'v');
+    if (version_compare($clean_checked_version, $clean_latest_version, '<')) {
         $checked_data->response[$plugin_slug] = [
             'url' => 'https://github.com/Aveo-Web-Marketing/Test',
             'slug' => $plugin_slug,

@@ -3,9 +3,9 @@
  * Plugin Name:       Test
  * Plugin URI:        https://aveo.dk/
  * Description:       Tester funktionalitet for Aveo
- * Version:           1.0.7
+ * Version:           1.0.0
  * Author:            Aveo
- * Update URI:        https://github.com/Aveo-Web-Marketing/Test
+ * Update URI:        https://aveo.dk/
  * Text Domain:       test
  */
 
@@ -18,25 +18,26 @@ add_filter('site_transient_update_plugins', 'aveo_test_check_for_plugin_update',
 function aveo_test_check_for_plugin_update($checked_data) {
     if (empty($checked_data->checked)) { return $checked_data; } // Close if checked is empty
 
-    // Check for transient
+    // Check for transient and get latest version
     $transient_name = 'aveo_test_update_check';
     $cached_response = get_transient($transient_name);
-    if ($cached_response !== false) { return $checked_data; } // Close if transient is set
-    set_transient($transient_name, 'not_empty', 5);
-
-    // Get the latest version
-    $api_url = 'https://api.github.com/repos/Aveo-Web-Marketing/Test/releases/latest';
-    $access_token = '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';
-    $args = array(
-        'headers' => array(
-            'Authorization' => 'token ' . $access_token,
-            'User-Agent' => 'WordPress/' . $GLOBALS['wp_version'],
-        ),
-    );
-    $response = wp_remote_get($api_url, $args);
-    if (is_wp_error($response)) { return $checked_data; } // Close if response is error
-    $response = json_decode(wp_remote_retrieve_body($response), true);
-    error_log('BARSRE: Response: ' . print_r($response, true));
+    if ($cached_response !== false) {
+        $response = $cached_response;
+    } else {
+        $api_url = 'https://api.github.com/repos/Aveo-Web-Marketing/Test/releases/latest';
+        $access_token = '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';
+        $args = array(
+            'headers' => array(
+                'Authorization' => 'token ' . $access_token,
+                'User-Agent' => 'WordPress/' . $GLOBALS['wp_version'],
+            ),
+        );
+        $response = wp_remote_get($api_url, $args);
+        if (is_wp_error($response)) { return $checked_data; } // Close if response is error
+        $response = json_decode(wp_remote_retrieve_body($response), true);
+        error_log('BARSRE: Response: ' . print_r($response, true));
+        set_transient($transient_name, $response, 10);
+    }
 
     // Check the version
     $plugin_slug = plugin_basename(__FILE__);
@@ -56,4 +57,20 @@ function aveo_test_check_for_plugin_update($checked_data) {
         error_log('BARSRE: No update available');
     }
     return $checked_data;
+}
+
+add_filter('upgrader_post_install', 'aveo_after_install', 10, 3);
+function aveo_after_install($response, $hook_extra, $result) {
+    global $wp_filesystem; // Get global FS object
+
+    // Define the target directory for your plugin
+    $install_directory = WP_PLUGIN_DIR . '/Test/';
+
+    // Move files to the defined plugin directory
+    $wp_filesystem->move($result['destination'], $install_directory);
+    $result['destination'] = $install_directory; // Set the destination for the rest of the stack
+    
+    activate_plugin('Test/test.php');
+
+    return $result;
 }

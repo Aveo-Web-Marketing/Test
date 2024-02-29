@@ -3,7 +3,7 @@
  * Plugin Name:       Test
  * Plugin URI:        https://aveo.dk/
  * Description:       Tester funktionalitet for Aveo
- * Version:           1.0.4
+ * Version:           1.0.5
  * Author:            Aveo
  * Update URI:        https://aveo.dk/
  * Text Domain:       test
@@ -17,6 +17,7 @@ add_filter('site_transient_update_plugins', 'aveo_test_check_for_plugin_update',
 
 function aveo_test_check_for_plugin_update($checked_data) {
     error_log('BARSRE: Checking for updates');
+    // delete_transient('aveo_test_update_check');
     if (empty($checked_data->checked)) {
         return $checked_data;
     }
@@ -33,23 +34,22 @@ function aveo_test_check_for_plugin_update($checked_data) {
             return $checked_data;
         }
         $response = json_decode(wp_remote_retrieve_body($response), true);
-        set_transient($transient_name, $response, 1 * HOUR_IN_SECONDS);
+        // set_transient($transient_name, $response, 1 * HOUR_IN_SECONDS);
+        set_transient($transient_name, $response, 60); // Expires after 60 seconds
     }
 
     $plugin_slug = plugin_basename(__FILE__);
-    $current_version = ltrim($checked_data->checked[$plugin_slug], 'v');
-    $latest_version = ltrim($response['tag_name'], 'v');
+    $current_version = isset($checked_data->checked[$plugin_slug]) ? ltrim($checked_data->checked[$plugin_slug], 'v') : null;
+    $latest_version = isset($response['tag_name']) ? ltrim($response['tag_name'], 'v') : null;
 
-    if (version_compare($current_version, $latest_version, '<')) {
-        $checked_data->response[$plugin_slug] = [
-            'id' => '0', // Not used by plugins hosted externally but required format
-            'slug' => $plugin_slug,
-            'plugin' => $plugin_slug,
-            'new_version' => $latest_version,
-            'url' => 'https://github.com/Aveo-Web-Marketing/Test', // Change to your plugin's info page if available
-            'package' => $response['zipball_url'],
-            'tested' => '5.9', // Update to the latest WordPress version you've tested with
-        ];
+    if ($latest_version && version_compare($current_version, $latest_version, '<')) {
+        $object = new stdClass();
+        $object->slug = $plugin_slug;
+        $object->new_version = $latest_version;
+        $object->url = 'https://github.com/Aveo-Web-Marketing/Test';
+        $object->package = $response['zipball_url'];
+        
+        $checked_data->response[$plugin_slug] = $object;
     } else {
         error_log('BARSRE: No update available');
     }
